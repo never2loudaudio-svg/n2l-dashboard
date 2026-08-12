@@ -10,6 +10,7 @@
     --bg: #0b0d12;
     --panel: #14171f;
     --panel-border: #232838;
+    --input-bg: #0e1017;
     --text: #e8eaf0;
     --text-dim: #8890a4;
     --accent: #ff5a3c;
@@ -19,31 +20,46 @@
     font-family: -apple-system, "Segoe UI", Inter, Roboto, sans-serif;
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: radial-gradient(circle at 20% -10%, #1a1f2e 0%, var(--bg) 55%);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 28px;
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+  body { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 232px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--panel-border);
+    padding: 28px 20px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
+  .logo { font-size: 18px; font-weight: 700; margin: 0 0 26px 4px; }
+  .logo .mark { color: var(--accent); }
+  .nav-link {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .nav-link:hover { color: var(--text); }
+  .nav-link.active { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--text); font-weight: 600; }
+
+  .main { flex: 1; min-width: 0; padding: 28px 32px; display: flex; flex-direction: column; gap: 22px; }
+
   header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 24px;
     flex-wrap: wrap;
     gap: 12px;
   }
-  h1 {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  h1 .mark { color: var(--accent); }
+  h1 { font-size: 22px; font-weight: 700; margin: 0; }
+  .subtitle { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
   .status {
     display: flex;
     align-items: center;
@@ -55,11 +71,7 @@
     padding: 6px 14px;
     border-radius: 999px;
   }
-  .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--text-dim);
-    transition: background 0.3s;
-  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); }
   .dot.live { background: var(--ok); animation: pulse 2s infinite; }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
@@ -67,23 +79,22 @@
     background: var(--panel);
     border: 1px solid var(--panel-border);
     border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 24px;
+    padding: 14px;
     display: flex;
     gap: 10px;
     align-items: flex-start;
   }
   .command-bar textarea {
     flex: 1;
-    background: #0e1017;
+    background: var(--input-bg);
     border: 1px solid var(--panel-border);
     border-radius: 10px;
     color: var(--text);
-    padding: 12px 14px;
+    padding: 10px 12px;
     font-size: 14px;
     font-family: inherit;
     resize: vertical;
-    min-height: 44px;
+    min-height: 40px;
   }
   .command-bar textarea:focus { outline: none; border-color: var(--accent); }
   .command-bar button {
@@ -91,64 +102,63 @@
     color: #14171f;
     border: none;
     border-radius: 10px;
-    padding: 0 22px;
+    padding: 0 20px;
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
-    height: 44px;
+    height: 40px;
     white-space: nowrap;
     transition: opacity 0.2s;
   }
   .command-bar button:hover { opacity: 0.85; }
   .command-bar button:disabled { opacity: 0.4; cursor: default; }
-  .command-hint { font-size: 12px; color: var(--text-dim); margin: -14px 0 20px 4px; }
+  .command-hint { font-size: 12px; color: var(--text-dim); margin-top: -12px; }
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 18px;
-  }
-  .panel {
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .stat-card {
     background: var(--panel);
     border: 1px solid var(--panel-border);
     border-radius: 14px;
     padding: 18px;
-    display: flex;
-    flex-direction: column;
-    max-height: 480px;
   }
-  .panel h2 {
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-dim);
-    margin: 0 0 14px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .panel h2 .count {
-    background: var(--panel-border);
-    color: var(--text);
-    border-radius: 999px;
-    padding: 1px 9px;
-    font-size: 11px;
-  }
-  .list { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-  .item {
-    background: #0e1017;
+  .stat-card .label { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); font-weight: 600; }
+  .stat-card .value { font-size: 32px; font-weight: 700; margin: 8px 0; }
+  .stat-card .trend { font-size: 12px; color: var(--text-dim); }
+  .stat-card .trend.up { color: var(--ok); }
+  .stat-card .trend.warn { color: var(--warn); }
+
+  .analytics-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .analytics-row { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel);
     border: 1px solid var(--panel-border);
-    border-left: 3px solid var(--panel-border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 13px;
-    line-height: 1.5;
+    border-radius: 14px;
+    padding: 20px;
   }
+  .card .card-title { font-size: 13px; font-weight: 600; color: var(--text-dim); margin: 0 0 16px 0; }
+
+  .bar-chart { display: flex; align-items: flex-end; gap: 14px; height: 140px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; height: 100%; }
+  .bar-col .bar { width: 28px; border-radius: 6px 6px 2px 2px; background: var(--accent); opacity: 0.55; min-height: 4px; transition: height 0.4s ease; }
+  .bar-col.peak .bar { opacity: 1; }
+  .bar-col .day-label { font-size: 11px; color: var(--text-dim); }
+
+  .breakdown-row { margin-bottom: 14px; }
+  .breakdown-row:last-child { margin-bottom: 0; }
+  .breakdown-row .row-top { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+  .breakdown-row .row-top .name { color: var(--text); }
+  .breakdown-row .row-top .pct { color: var(--text-dim); }
+  .track { height: 6px; border-radius: 3px; background: var(--panel-border); overflow: hidden; }
+  .track .fill { height: 100%; border-radius: 3px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .panel { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; max-height: 480px; scroll-margin-top: 20px; }
+  .panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); margin: 0 0 14px 0; display: flex; justify-content: space-between; align-items: center; }
+  .panel h2 .count { background: var(--panel-border); color: var(--text); border-radius: 999px; padding: 1px 9px; font-size: 11px; text-transform: none; letter-spacing: normal; }
+  .list { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .item { background: var(--input-bg); border: 1px solid var(--panel-border); border-left: 3px solid var(--panel-border); border-radius: 8px; padding: 10px 12px; font-size: 13px; line-height: 1.5; }
   .item.new { animation: flashin 1.6s ease-out; }
-  @keyframes flashin {
-    0% { border-left-color: var(--accent); background: #23140f; }
-    100% { border-left-color: var(--panel-border); background: #0e1017; }
-  }
+  @keyframes flashin { 0% { border-left-color: var(--accent); background: #23140f; } 100% { border-left-color: var(--panel-border); background: var(--input-bg); } }
   .item .meta { color: var(--text-dim); font-size: 11px; margin-bottom: 4px; display: flex; gap: 8px; }
   .badge { padding: 1px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
   .badge.open { background: var(--warn); color: #2a1c00; }
@@ -161,35 +171,85 @@
 </head>
 <body>
 
-<header>
-  <h1><span class="mark">N2L</span> Assistant — Live Control</h1>
-  <div class="status"><span class="dot" id="live-dot"></span><span id="live-label">verbinden…</span></div>
-</header>
+<aside class="sidebar">
+  <div class="logo"><span class="mark">N2L</span> Admin</div>
+  <a class="nav-link active" href="#top">Overzicht</a>
+  <a class="nav-link" href="#tasks">Opdrachten</a>
+  <a class="nav-link" href="#research">Onderzoek</a>
+  <a class="nav-link" href="#competitor">Concurrentie</a>
+  <a class="nav-link" href="#ideas">Content-ideeën</a>
+</aside>
 
-<div class="command-bar">
-  <textarea id="cmd-input" placeholder="Typ een opdracht voor de assistent, bv. 'zoek uit welke concurrent het goedkoopst is in shallow-mount subwoofers' — verschijnt hieronder bij Open en wordt bij de volgende run opgepakt."></textarea>
-  <button id="cmd-send">Verstuur</button>
-</div>
-<div class="command-hint">De assistent leest dit bij elke run (07:30 + idle-runs). Grote/gevoelige acties (Shopify, e-mail, publiceren) worden nooit automatisch uitgevoerd — alleen voorbereid.</div>
+<main class="main">
+  <header id="top">
+    <div>
+      <h1>Overzicht</h1>
+      <div class="subtitle">Never2LoudAudio — assistent activiteit, live</div>
+    </div>
+    <div class="status"><span class="dot" id="live-dot"></span><span id="live-label">verbinden…</span></div>
+  </header>
 
-<div class="grid">
-  <div class="panel">
-    <h2>Opdrachten (tasks) <span class="count" id="tasks-count">0</span></h2>
-    <div class="list" id="tasks-list"><div class="empty">Nog geen opdrachten.</div></div>
+  <div>
+    <div class="command-bar">
+      <textarea id="cmd-input" placeholder="Typ een opdracht voor de assistent, bv. 'zoek uit welke concurrent het goedkoopst is in shallow-mount subwoofers' — verschijnt bij Opdrachten en wordt bij de volgende run opgepakt."></textarea>
+      <button id="cmd-send">Verstuur</button>
+    </div>
+    <div class="command-hint">De assistent leest dit bij elke run (07:30 + idle-runs). Grote/gevoelige acties (Shopify, e-mail, publiceren) worden nooit automatisch uitgevoerd — alleen voorbereid.</div>
   </div>
-  <div class="panel">
-    <h2>Onderzoeksbevindingen <span class="count" id="research-count">0</span></h2>
-    <div class="list" id="research-list"><div class="empty">Nog geen bevindingen.</div></div>
+
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card">
+      <div class="label">Open opdrachten</div>
+      <div class="value" id="stat-open">—</div>
+      <div class="trend" id="stat-open-trend"></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Afgerond (7d)</div>
+      <div class="value" id="stat-done">—</div>
+      <div class="trend up" id="stat-done-trend"></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Bevindingen (7d)</div>
+      <div class="value" id="stat-research">—</div>
+      <div class="trend" id="stat-research-trend"></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Concurrentie-updates</div>
+      <div class="value" id="stat-competitor">—</div>
+      <div class="trend" id="stat-competitor-trend"></div>
+    </div>
   </div>
-  <div class="panel">
-    <h2>Concurrentie <span class="count" id="competitor-count">0</span></h2>
-    <div class="list" id="competitor-list"><div class="empty">Nog geen concurrentie-notities.</div></div>
+
+  <div class="analytics-row">
+    <div class="card">
+      <div class="card-title">Activiteit — laatste 7 dagen</div>
+      <div class="bar-chart" id="bar-chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Bevindingen per specialist</div>
+      <div id="breakdown"><div class="empty">Nog geen data.</div></div>
+    </div>
   </div>
-  <div class="panel">
-    <h2>Content-ideeën <span class="count" id="ideas-count">0</span></h2>
-    <div class="list" id="ideas-list"><div class="empty">Nog geen ideeën.</div></div>
+
+  <div class="grid">
+    <div class="panel" id="tasks">
+      <h2>Opdrachten <span class="count" id="tasks-count">0</span></h2>
+      <div class="list" id="tasks-list"><div class="empty">Nog geen opdrachten.</div></div>
+    </div>
+    <div class="panel" id="research">
+      <h2>Onderzoeksbevindingen <span class="count" id="research-count">0</span></h2>
+      <div class="list" id="research-list"><div class="empty">Nog geen bevindingen.</div></div>
+    </div>
+    <div class="panel" id="competitor">
+      <h2>Concurrentie <span class="count" id="competitor-count">0</span></h2>
+      <div class="list" id="competitor-list"><div class="empty">Nog geen concurrentie-notities.</div></div>
+    </div>
+    <div class="panel" id="ideas">
+      <h2>Content-ideeën <span class="count" id="ideas-count">0</span></h2>
+      <div class="list" id="ideas-list"><div class="empty">Nog geen ideeën.</div></div>
+    </div>
   </div>
-</div>
+</main>
 
 <script>
 const SUPABASE_URL = "https://ottyfaagbjemdyeaphzd.supabase.co";
@@ -198,6 +258,8 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const fmtTime = (iso) => new Date(iso).toLocaleString("nl-NL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 const esc = (s) => (s ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const DAY_MS = 24 * 60 * 60 * 1000;
+const sinceDays = (n) => Date.now() - n * DAY_MS;
 
 function renderList(listEl, countEl, rows, renderItem, emptyMsg) {
   countEl.textContent = rows.length;
@@ -220,13 +282,68 @@ function ideaItem(i, isNew) {
 }
 
 const state = { tasks: [], research: [], competitor: [], ideas: [] };
+const PALETTE = ["#ff5a3c", "#3ddc84", "#ffb84d", "#7aa2ff", "#c792ea", "#8890a4"];
+
+function renderAnalytics() {
+  const openCount = state.tasks.filter((t) => t.status === "open").length;
+  const done7d = state.tasks.filter((t) => t.status === "done" && t.completed_at && new Date(t.completed_at).getTime() >= sinceDays(7)).length;
+  const research7d = state.research.filter((r) => new Date(r.run_at).getTime() >= sinceDays(7)).length;
+  const competitor7d = state.competitor.filter((c) => new Date(c.observed_at).getTime() >= sinceDays(7)).length;
+
+  document.getElementById("stat-open").textContent = openCount;
+  document.getElementById("stat-open-trend").textContent = openCount ? "wacht op volgende run" : "alles verwerkt";
+  document.getElementById("stat-done").textContent = done7d;
+  document.getElementById("stat-done-trend").textContent = done7d ? "laatste 7 dagen" : "nog niets afgerond";
+  document.getElementById("stat-research").textContent = research7d;
+  document.getElementById("stat-research-trend").textContent = "laatste 7 dagen";
+  document.getElementById("stat-competitor").textContent = competitor7d;
+  document.getElementById("stat-competitor-trend").textContent = competitor7d ? "laatste 7 dagen" : "geen updates deze week";
+
+  // 7-day activity bar chart: combined rows per day across all 4 tables
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * DAY_MS);
+    days.push({ key: d.toDateString(), label: d.toLocaleDateString("nl-NL", { weekday: "short" }).replace(".", ""), count: 0 });
+  }
+  const dayIndex = Object.fromEntries(days.map((d, i) => [d.key, i]));
+  const bump = (iso) => {
+    const key = new Date(iso).toDateString();
+    if (key in dayIndex) days[dayIndex[key]].count++;
+  };
+  state.tasks.filter((t) => t.status === "done").forEach((t) => t.completed_at && bump(t.completed_at));
+  state.research.forEach((r) => bump(r.run_at));
+  state.competitor.forEach((c) => bump(c.observed_at));
+  state.ideas.forEach((i) => bump(i.created_at));
+  const maxCount = Math.max(1, ...days.map((d) => d.count));
+  document.getElementById("bar-chart").innerHTML = days
+    .map((d) => `<div class="bar-col${d.count === maxCount && maxCount > 0 ? " peak" : ""}"><div class="bar" style="height:${Math.max(4, Math.round((d.count / maxCount) * 120))}px"></div><div class="day-label">${esc(d.label)}</div></div>`)
+    .join("");
+
+  // Specialist breakdown from research_log
+  const counts = {};
+  state.research.forEach((r) => { counts[r.specialist] = (counts[r.specialist] || 0) + 1; });
+  const total = state.research.length;
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const breakdownEl = document.getElementById("breakdown");
+  if (!total) {
+    breakdownEl.innerHTML = `<div class="empty">Nog geen data.</div>`;
+  } else {
+    breakdownEl.innerHTML = entries
+      .map(([name, count], i) => {
+        const pct = Math.round((count / total) * 100);
+        const color = PALETTE[i % PALETTE.length];
+        return `<div class="breakdown-row"><div class="row-top"><span class="name">${esc(name)}</span><span class="pct">${pct}%</span></div><div class="track"><div class="fill" style="width:${pct}%;background:${color}"></div></div></div>`;
+      })
+      .join("");
+  }
+}
 
 async function loadAll() {
   const [tasks, research, competitor, ideas] = await Promise.all([
-    client.from("tasks").select("*").order("created_at", { ascending: false }).limit(30),
-    client.from("research_log").select("*").order("run_at", { ascending: false }).limit(30),
-    client.from("competitor_notes").select("*").order("observed_at", { ascending: false }).limit(30),
-    client.from("content_ideas").select("*").order("created_at", { ascending: false }).limit(30),
+    client.from("tasks").select("*").order("created_at", { ascending: false }).limit(150),
+    client.from("research_log").select("*").order("run_at", { ascending: false }).limit(150),
+    client.from("competitor_notes").select("*").order("observed_at", { ascending: false }).limit(150),
+    client.from("content_ideas").select("*").order("created_at", { ascending: false }).limit(150),
   ]);
   state.tasks = tasks.data || [];
   state.research = research.data || [];
@@ -236,6 +353,7 @@ async function loadAll() {
   renderList(document.getElementById("research-list"), document.getElementById("research-count"), state.research, (r) => researchItem(r, false), "Nog geen bevindingen.");
   renderList(document.getElementById("competitor-list"), document.getElementById("competitor-count"), state.competitor, (c) => competitorItem(c, false), "Nog geen concurrentie-notities.");
   renderList(document.getElementById("ideas-list"), document.getElementById("ideas-count"), state.ideas, (i) => ideaItem(i, false), "Nog geen ideeën.");
+  renderAnalytics();
 }
 
 function prependLive(key, row, listEl, countEl, renderItem, emptyMsg) {
@@ -244,6 +362,7 @@ function prependLive(key, row, listEl, countEl, renderItem, emptyMsg) {
   if (idx >= 0) arr[idx] = row; else arr.unshift(row);
   countEl.textContent = arr.length;
   listEl.innerHTML = arr.length ? arr.map((r, i) => renderItem(r, i === 0)).join("") : `<div class="empty">${emptyMsg}</div>`;
+  renderAnalytics();
 }
 
 client
@@ -276,6 +395,13 @@ document.getElementById("cmd-send").addEventListener("click", async () => {
 });
 document.getElementById("cmd-input").addEventListener("keydown", (e) => {
   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) document.getElementById("cmd-send").click();
+});
+
+document.querySelectorAll(".nav-link").forEach((link) => {
+  link.addEventListener("click", () => {
+    document.querySelectorAll(".nav-link").forEach((l) => l.classList.remove("active"));
+    link.classList.add("active");
+  });
 });
 
 loadAll();
