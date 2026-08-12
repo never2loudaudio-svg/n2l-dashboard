@@ -152,9 +152,9 @@
   .breakdown-row:first-child .track-bar .fill { background: var(--signal-text); }
 
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; max-height: 480px; scroll-margin-top: 20px; }
-  .panel.jump-target { animation: panelflash 1s ease-out; }
-  @keyframes panelflash { 0% { border-color: var(--signal); box-shadow: inset 0 0 0 1px var(--signal); } 100% { border-color: var(--line); box-shadow: none; } }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; max-height: 480px; }
+  .panel.solo { max-height: 70vh; }
+  .hidden { display: none !important; }
   .panel h2 { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; color: var(--muted); margin: 0 0 14px 0; display: flex; justify-content: space-between; align-items: center; }
   .panel h2 .count { font-family: var(--font-mono); background: var(--void); border: 1px solid var(--line); color: var(--ink); border-radius: 3px; padding: 1px 8px; font-size: 11px; text-transform: none; letter-spacing: normal; }
   .list { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
@@ -190,7 +190,7 @@
 <main class="main">
   <header id="top">
     <div>
-      <h1>Overzicht</h1>
+      <h1 id="page-title">Overzicht</h1>
       <div class="subtitle">Never2LoudAudio — assistent activiteit, live</div>
     </div>
     <div class="status"><span class="dot" id="live-dot"></span><span id="live-label">verbinden…</span></div>
@@ -227,7 +227,7 @@
     </div>
   </div>
 
-  <div class="analytics-row">
+  <div class="analytics-row" id="analytics-row">
     <div class="card">
       <div class="card-title">Activiteit — laatste 7 dagen</div>
       <div class="meter-chart" id="bar-chart"></div>
@@ -414,19 +414,25 @@ document.getElementById("cmd-input").addEventListener("keydown", (e) => {
   if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) document.getElementById("cmd-send").click();
 });
 
+const PANEL_IDS = ["tasks", "research", "competitor", "ideas"];
+
 document.querySelectorAll(".nav-link").forEach((link) => {
   link.addEventListener("click", (e) => {
     e.preventDefault();
     document.querySelectorAll(".nav-link").forEach((l) => l.classList.remove("active"));
     link.classList.add("active");
-    const target = document.querySelector(link.getAttribute("href"));
-    if (!target) return;
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
-    if (target.classList.contains("panel")) {
-      target.classList.remove("jump-target");
-      void target.offsetWidth; // restart animation even if the same panel is clicked twice
-      target.classList.add("jump-target");
-    }
+
+    const id = link.getAttribute("href").slice(1);
+    const isOverview = id === "top";
+    document.getElementById("stats-row").classList.toggle("hidden", !isOverview);
+    document.getElementById("analytics-row").classList.toggle("hidden", !isOverview);
+    PANEL_IDS.forEach((panelId) => {
+      const panel = document.getElementById(panelId);
+      panel.classList.toggle("hidden", !isOverview && panelId !== id);
+      panel.classList.toggle("solo", !isOverview && panelId === id);
+    });
+    document.getElementById("page-title").textContent = isOverview ? "Overzicht" : link.textContent.trim();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 });
 
