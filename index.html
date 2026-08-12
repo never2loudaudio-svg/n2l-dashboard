@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>N2L Assistant — Live Control</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.js" integrity="sha384-qafw21c/iciq0VXsi9FzkfoQv5I/V0iqE4lSNcKXPnW9/UTJLnv5CcN4FHxVLnKg" crossorigin="anonymous"></script>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #14171f;
+    --panel-border: #232838;
+    --text: #e8eaf0;
+    --text-dim: #8890a4;
+    --accent: #ff5a3c;
+    --accent-dim: #7a3226;
+    --ok: #3ddc84;
+    --warn: #ffb84d;
+    font-family: -apple-system, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(circle at 20% -10%, #1a1f2e 0%, var(--bg) 55%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 28px;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h1 .mark { color: var(--accent); }
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-dim);
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-dim);
+    transition: background 0.3s;
+  }
+  .dot.live { background: var(--ok); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .command-bar {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .command-bar textarea {
+    flex: 1;
+    background: #0e1017;
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    color: var(--text);
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 44px;
+  }
+  .command-bar textarea:focus { outline: none; border-color: var(--accent); }
+  .command-bar button {
+    background: var(--accent);
+    color: #14171f;
+    border: none;
+    border-radius: 10px;
+    padding: 0 22px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    height: 44px;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+  }
+  .command-bar button:hover { opacity: 0.85; }
+  .command-bar button:disabled { opacity: 0.4; cursor: default; }
+  .command-hint { font-size: 12px; color: var(--text-dim); margin: -14px 0 20px 4px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 18px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    max-height: 480px;
+  }
+  .panel h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin: 0 0 14px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .panel h2 .count {
+    background: var(--panel-border);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 1px 9px;
+    font-size: 11px;
+  }
+  .list { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .item {
+    background: #0e1017;
+    border: 1px solid var(--panel-border);
+    border-left: 3px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .item.new { animation: flashin 1.6s ease-out; }
+  @keyframes flashin {
+    0% { border-left-color: var(--accent); background: #23140f; }
+    100% { border-left-color: var(--panel-border); background: #0e1017; }
+  }
+  .item .meta { color: var(--text-dim); font-size: 11px; margin-bottom: 4px; display: flex; gap: 8px; }
+  .badge { padding: 1px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+  .badge.open { background: var(--warn); color: #2a1c00; }
+  .badge.done { background: var(--ok); color: #04270f; }
+  .badge.specialist { background: var(--accent-dim); color: #ffcfc2; }
+  .item .body { color: var(--text); white-space: pre-wrap; }
+  .item .result { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--panel-border); color: var(--text-dim); white-space: pre-wrap; }
+  .empty { color: var(--text-dim); font-size: 13px; font-style: italic; padding: 12px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="mark">N2L</span> Assistant — Live Control</h1>
+  <div class="status"><span class="dot" id="live-dot"></span><span id="live-label">verbinden…</span></div>
+</header>
+
+<div class="command-bar">
+  <textarea id="cmd-input" placeholder="Typ een opdracht voor de assistent, bv. 'zoek uit welke concurrent het goedkoopst is in shallow-mount subwoofers' — verschijnt hieronder bij Open en wordt bij de volgende run opgepakt."></textarea>
+  <button id="cmd-send">Verstuur</button>
+</div>
+<div class="command-hint">De assistent leest dit bij elke run (07:30 + idle-runs). Grote/gevoelige acties (Shopify, e-mail, publiceren) worden nooit automatisch uitgevoerd — alleen voorbereid.</div>
+
+<div class="grid">
+  <div class="panel">
+    <h2>Opdrachten (tasks) <span class="count" id="tasks-count">0</span></h2>
+    <div class="list" id="tasks-list"><div class="empty">Nog geen opdrachten.</div></div>
+  </div>
+  <div class="panel">
+    <h2>Onderzoeksbevindingen <span class="count" id="research-count">0</span></h2>
+    <div class="list" id="research-list"><div class="empty">Nog geen bevindingen.</div></div>
+  </div>
+  <div class="panel">
+    <h2>Concurrentie <span class="count" id="competitor-count">0</span></h2>
+    <div class="list" id="competitor-list"><div class="empty">Nog geen concurrentie-notities.</div></div>
+  </div>
+  <div class="panel">
+    <h2>Content-ideeën <span class="count" id="ideas-count">0</span></h2>
+    <div class="list" id="ideas-list"><div class="empty">Nog geen ideeën.</div></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://ottyfaagbjemdyeaphzd.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_rvAd2bYbiKP_Pk9Q98W-Yg_UbKmHhzF";
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const fmtTime = (iso) => new Date(iso).toLocaleString("nl-NL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+const esc = (s) => (s ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+function renderList(listEl, countEl, rows, renderItem, emptyMsg) {
+  countEl.textContent = rows.length;
+  listEl.innerHTML = rows.length ? rows.map(renderItem).join("") : `<div class="empty">${emptyMsg}</div>`;
+}
+
+function taskItem(t, isNew) {
+  const badge = t.status === "done" ? '<span class="badge done">done</span>' : '<span class="badge open">open</span>';
+  const result = t.result ? `<div class="result">${esc(t.result)}</div>` : "";
+  return `<div class="item${isNew ? " new" : ""}"><div class="meta">${badge}<span>${fmtTime(t.created_at)}</span></div><div class="body">${esc(t.body)}</div>${result}</div>`;
+}
+function researchItem(r, isNew) {
+  return `<div class="item${isNew ? " new" : ""}"><div class="meta"><span class="badge specialist">${esc(r.specialist)}</span><span>${fmtTime(r.run_at)}</span></div><div class="body">${esc(r.finding)}</div></div>`;
+}
+function competitorItem(c, isNew) {
+  return `<div class="item${isNew ? " new" : ""}"><div class="meta"><strong>${esc(c.competitor)}</strong><span>${fmtTime(c.observed_at)}</span></div><div class="body">${esc(c.note)}</div></div>`;
+}
+function ideaItem(i, isNew) {
+  return `<div class="item${isNew ? " new" : ""}"><div class="meta"><span class="badge specialist">${esc(i.status)}</span><span>${fmtTime(i.created_at)}</span></div><div class="body"><strong>${esc(i.title)}</strong>${i.description ? "<br>" + esc(i.description) : ""}</div></div>`;
+}
+
+const state = { tasks: [], research: [], competitor: [], ideas: [] };
+
+async function loadAll() {
+  const [tasks, research, competitor, ideas] = await Promise.all([
+    client.from("tasks").select("*").order("created_at", { ascending: false }).limit(30),
+    client.from("research_log").select("*").order("run_at", { ascending: false }).limit(30),
+    client.from("competitor_notes").select("*").order("observed_at", { ascending: false }).limit(30),
+    client.from("content_ideas").select("*").order("created_at", { ascending: false }).limit(30),
+  ]);
+  state.tasks = tasks.data || [];
+  state.research = research.data || [];
+  state.competitor = competitor.data || [];
+  state.ideas = ideas.data || [];
+  renderList(document.getElementById("tasks-list"), document.getElementById("tasks-count"), state.tasks, (t) => taskItem(t, false), "Nog geen opdrachten.");
+  renderList(document.getElementById("research-list"), document.getElementById("research-count"), state.research, (r) => researchItem(r, false), "Nog geen bevindingen.");
+  renderList(document.getElementById("competitor-list"), document.getElementById("competitor-count"), state.competitor, (c) => competitorItem(c, false), "Nog geen concurrentie-notities.");
+  renderList(document.getElementById("ideas-list"), document.getElementById("ideas-count"), state.ideas, (i) => ideaItem(i, false), "Nog geen ideeën.");
+}
+
+function prependLive(key, row, listEl, countEl, renderItem, emptyMsg) {
+  const arr = state[key];
+  const idx = arr.findIndex((r) => r.id === row.id);
+  if (idx >= 0) arr[idx] = row; else arr.unshift(row);
+  countEl.textContent = arr.length;
+  listEl.innerHTML = arr.length ? arr.map((r, i) => renderItem(r, i === 0)).join("") : `<div class="empty">${emptyMsg}</div>`;
+}
+
+client
+  .channel("n2l-live")
+  .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, (payload) =>
+    prependLive("tasks", payload.new, document.getElementById("tasks-list"), document.getElementById("tasks-count"), (t, n) => taskItem(t, n), "Nog geen opdrachten."))
+  .on("postgres_changes", { event: "*", schema: "public", table: "research_log" }, (payload) =>
+    prependLive("research", payload.new, document.getElementById("research-list"), document.getElementById("research-count"), (r, n) => researchItem(r, n), "Nog geen bevindingen."))
+  .on("postgres_changes", { event: "*", schema: "public", table: "competitor_notes" }, (payload) =>
+    prependLive("competitor", payload.new, document.getElementById("competitor-list"), document.getElementById("competitor-count"), (c, n) => competitorItem(c, n), "Nog geen concurrentie-notities."))
+  .on("postgres_changes", { event: "*", schema: "public", table: "content_ideas" }, (payload) =>
+    prependLive("ideas", payload.new, document.getElementById("ideas-list"), document.getElementById("ideas-count"), (i, n) => ideaItem(i, n), "Nog geen ideeën."))
+  .subscribe((status) => {
+    const dot = document.getElementById("live-dot");
+    const label = document.getElementById("live-label");
+    if (status === "SUBSCRIBED") { dot.classList.add("live"); label.textContent = "live"; }
+    else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") { dot.classList.remove("live"); label.textContent = "niet verbonden"; }
+  });
+
+document.getElementById("cmd-send").addEventListener("click", async () => {
+  const input = document.getElementById("cmd-input");
+  const btn = document.getElementById("cmd-send");
+  const body = input.value.trim();
+  if (!body) return;
+  btn.disabled = true;
+  const { error } = await client.from("tasks").insert({ body, status: "open" });
+  btn.disabled = false;
+  if (error) { alert("Versturen mislukt: " + error.message); return; }
+  input.value = "";
+});
+document.getElementById("cmd-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) document.getElementById("cmd-send").click();
+});
+
+loadAll();
+</script>
+</body>
+</html>
